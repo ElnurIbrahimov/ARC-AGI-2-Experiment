@@ -58,11 +58,18 @@ def wrap_model_fsdp(
 ) -> nn.Module:
     """
     Wrap model with FSDP for memory-efficient distributed training.
-    - Use bf16 mixed precision
-    - Shard parameters across GPUs
-    - Enable gradient checkpointing on Mamba and Attention blocks
-    - Use size-based auto wrapping (min 1M params per shard)
+    Falls back to simple bf16 cast on single GPU (no process group needed).
     """
+    # Single GPU: skip FSDP, just cast to bf16 and move to GPU
+    if not dist.is_initialized():
+        _enable_gradient_checkpointing(model)
+        device = torch.device(f'cuda:{torch.cuda.current_device()}')
+        if mixed_precision:
+            model = model.to(device=device, dtype=torch.bfloat16)
+        else:
+            model = model.to(device=device)
+        return model
+
     mp_policy = None
     if mixed_precision:
         mp_policy = MixedPrecision(
