@@ -17,7 +17,6 @@ python training/pretrain.py \
     --total_steps 20000 \
     --warmup_steps 1000 \
     --checkpoint_dir /workspace/checkpoints/pretrain \
-    --data_dir /workspace/data/arc-agi-2 \
     --log_every 10 \
     --save_every 2000 \
     --eval_every 1000 \
